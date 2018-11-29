@@ -7,8 +7,7 @@ ETC_DIR=/etc # Server level config files
 VESTA_DIR=/usr/local/vesta # Where Vesta CP files are stored
 
 ##### What NOT to backup #####
-# This scrupt treats all dirs under /home as "users"
-# Put here the users or dirs under /home that you dont want to backup, separated by , Ex: "user,user2,otheruser"
+# This scrupt treat all dirs under home as "users", Put here the users that you dont want to backup, separated by , Ex: "user,user2,user3".
 EXCLUDED_USERS=
 
 ##### Where to backup #####

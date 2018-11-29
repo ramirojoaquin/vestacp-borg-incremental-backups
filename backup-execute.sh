@@ -22,13 +22,27 @@ echo
 echo "$(date +'%F %T') #################### USER PROCESSING ####################"
 echo
 
+# Prepare excluded users array
+IFS=', ' read -r -a EXCLUDED_USERS <<< "$EXCLUDED_USERS"
+
 COUNT=0
 
 for USER_DIR in $HOME_DIR/* ; do
   if [ -d "$USER_DIR" ]; then
     USER=$(basename $USER_DIR)
+
     echo "$(date +'%F %T') ########## Processing user $USER ##########"
     echo
+
+    # Check if the user is in the excluded users list and skip if true
+    for EXCLUDED_USER in "${EXCLUDED_USERS[@]}"
+    do
+      if [ "$USER" == "$EXCLUDED_USER" ]; then
+        echo "!! User $USER is in the excluded users list, the backup will not run"
+        echo
+        continue 2
+      fi
+    done
 
     # Clean exclusion list
     if [ -f "$EXCLUDE" ]; then
