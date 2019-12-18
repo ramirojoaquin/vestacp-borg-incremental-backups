@@ -56,6 +56,7 @@ do
   echo
 
   USER_REPO=$REPO_USERS_DIR/$USER
+  USER_DB_REPO=$REPO_DB_DIR/$USER
   LAST_BACKUP_ARCHIVE=$(borg list $USER_REPO | cut -d " " -f1 | awk 'END{print}')
 
   # Set dir paths
@@ -126,6 +127,16 @@ do
     continue
   fi
 
+  echo "-- Extracting last database backup $USER_DB_REPO::$LAST_BACKUP_ARCHIVE to temp dir"
+
+  DATABASE_ARCHIVES=$(borg list $USER_DB_REPO | grep "\-$LAST_BACKUP_ARCHIVE" | awk '{print $1}')
+  mkdir -p $ARCHIVE_USER_DIR/$DB_DUMP_DIR_NAME
+  for DATABASE_ARCHIVE in "${DATABASE_ARCHIVES}"; do
+    DATABASE_NAME=$(echo $DATABASE_ARCHIVE | sed -e "s/-$LAST_BACKUP_ARCHIVE//")
+    echo "-- Extracting $DATABASE_ARCHIVE to $DB_DUMP_DIR_NAME/$DATABASE_NAME.sql.gz";
+    borg extract --stdout $USER_DB_REPO::$DATABASE_ARCHIVE | gzip > $ARCHIVE_USER_DIR/$DB_DUMP_DIR_NAME/$DATABASE_NAME.sql.gz
+  done
+
   echo "-- Moving user files from temp dir to $ARCHIVE_USER_DIR"
   mv $BACKUP_USER_DIR/* $ARCHIVE_USER_DIR
   mv $BACKUP_VESTA_USER_DIR $ARCHIVE_VESTA_USER_DIR
@@ -142,6 +153,11 @@ do
   echo "-- Removing user repo $USER_REPO from disk."
   if [ -d "$USER_REPO" ]; then
     rm -rf $USER_REPO
+  fi
+
+  echo "-- Removing user database repo $USER_DB_REPO from disk."
+  if [ -d "$USER_DB_REPO" ]; then
+    rm -rf $USER_DB_REPO
   fi
 
   echo

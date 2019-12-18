@@ -18,7 +18,7 @@ TEMP_DIR=$CURRENT_DIR/tmp
 mkdir -p $TEMP_DIR
 
 # Set user repository
-USER_REPO=$REPO_USERS_DIR/$USER
+USER_REPO=$REPO_DB_DIR/$USER
 
 ##### Validations #####
 
@@ -57,9 +57,9 @@ if [ ! -d "$USER_REPO/data" ]; then
   exit 1
 fi
 
-if ! borg list $USER_REPO | grep -q $TIME; then
+if ! borg list $USER_REPO | grep -q "$DB-$TIME"; then
   echo "!!!!! Backup archive $TIME not found, the following are available:"
-  borg list $USER_REPO
+  borg list $USER_REPO | grep $DB
   echo "Usage example:"
   echo $USAGE
   exit 1
@@ -78,24 +78,15 @@ then
   exit 1
 fi
 
-cd $TEMP_DIR
 echo "-- Restoring database $DB from backup $USER_REPO::$TIME"
-DB_DIR=$HOME_DIR/$USER/$DB_DUMP_DIR_NAME
-BACKUP_DB_DIR="${DB_DIR:1}"
-borg extract --list $USER_REPO::$TIME $BACKUP_DB_DIR
-# Check that the files have been restored correctly
-DB_FILE=$BACKUP_DB_DIR/$DB.sql.gz
-if [ ! -f "$DB_FILE" ]; then
-  echo "!!!!! Database $DB file is not present in backup archive $TIME. Aborting..."
-  exit 1
-else
-  $CURRENT_DIR/inc/db-restore.sh $DB $DB_FILE
-fi
+echo "-- Removing database $DB"
+mysqladmin -f drop $DB
 
-echo "----- Cleaning temp dir"
-if [ -d "$TEMP_DIR" ]; then
-  rm -rf $TEMP_DIR/*
-fi
+echo "-- Creating database $DB"
+mysql -e "CREATE DATABASE IF NOT EXISTS $DB"
+
+echo "-- Importing $DB_FILE to $DB database"
+borg extract --stdout $USER_REPO::$DB-$TIME | mysql $DB
 
 echo
 echo "$(date +'%F %T') ########## DATABASE $DB OWNED BY $USER RESTORE COMPLETED ##########"
