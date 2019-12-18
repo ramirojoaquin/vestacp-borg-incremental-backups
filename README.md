@@ -64,7 +64,7 @@ This cronjob will run `backup-execute.sh` every day at 4am. You can change the h
 ## Backup execution
 The main backup script `./backup-execute.sh` is designed to be run every day via cronjob and it performs the following actions:
 
-* Dump all databases to the corresponding user dirs. Using the following format `/home/userdir/db_dump/database.sql.gz`
+* Creates an incremental backup archive/point of all the databases, using one repository per user . Repos are stored in `/backup/borg/db/USER`
 * Creates an incremental backup archive/point of all the users, using one repository per user . Repos are stored in `/backup/borg/home/USER`
 * Creates an incremental backup archive/point of config dir `/etc` and save the repo in `/backup/borg/etc`
 * Creates an incremental backup archive/point of vesta directory `/usr/local/vesta` and save the repo in `/backup/borg/vesta`
@@ -83,7 +83,7 @@ Vesta CLI commands are used to obtain all the information.
 ### Dump databases
 `./dump-databases.sh`
 
-Dump all databases to the corresponding user dirs. Using the following format `/home/userdir/db_dump/database.sql.gz`
+Dump all databases and adds them to the user's db borg repository. It does this using pipes so that it does not use any temporary disk space.
 
 This script is called by main `backup-execute.sh` but it can also be run independently.
 
@@ -131,6 +131,7 @@ This script will restore the given mail domain from a particular point in increm
 `./archive-user.sh user`
 
 This script will save a copy of the given user to the offline archive directory `/backup/offline`.
+The databases are stored into the user dir. Using the following format `/home/userdir/db_dump/database.sql.gz`
 
 * First argument is the user name.
 

@@ -15,8 +15,8 @@ ARCHIVE=$(date +'%F')
 
 ### Start processing ###
 
-# Dump databases to corresponding user dirs
-$CURRENT_DIR/dump-databases.sh
+# Dump databases to borg
+$CURRENT_DIR/dump-databases.sh $ARCHIVE
 
 echo
 echo "$(date +'%F %T') #################### USER PROCESSING ####################"
