@@ -108,17 +108,8 @@ if [ $4 ]; then
   DB=$4
   v-list-databases $USER | cut -d " " -f1 | awk '{if(NR>2)print}' | while read DATABASE ; do
     if [ "$DB" == "$DATABASE" ]; then
-      echo "-- Restoring database $DB from backup $USER_REPO::$TIME"
-      DB_DIR=$HOME_DIR/$USER/$DB_DUMP_DIR_NAME
-      BACKUP_DB_DIR="${DB_DIR:1}"
-      borg extract --list $USER_REPO::$TIME $BACKUP_DB_DIR
-      # Check that the files have been restored correctly
-      DB_FILE=$BACKUP_DB_DIR/$DB.sql.gz
-      if [ ! -f "$DB_FILE" ]; then
-        echo "!!!!! Database $DB files are not present in backup archive $TIME. Aborting database restoration..."
-      else
-        $CURRENT_DIR/inc/db-restore.sh $DB $DB_FILE
-      fi
+      echo "-- Restoring database $DB from backup $TIME"
+      yes | $CURRENT_DIR/restore-db.sh $TIME $USER $DB
     else
       echo "!!!!! Database $DB not found under selected user. User $USER has the following databases:"
       v-list-databases $USER | cut -d " " -f1 | awk '{if(NR>2)print}'

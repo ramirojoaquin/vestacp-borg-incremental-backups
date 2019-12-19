@@ -120,16 +120,8 @@ chown -R $USER:$USER $USER_DIR/web
 
 echo "----- Checking if there are databases to restore"
 v-list-databases $USER | cut -d " " -f1 | awk '{if(NR>2)print}' | while read DB ; do
-  # Check if there is a backup for the db
-  DB_DIR=$HOME_DIR/$USER/$DB_DUMP_DIR_NAME
-  DB_FILE=$DB_DIR/$DB.sql.gz
-  if test -f "$DB_FILE"
-    then
-    echo "-- $DB found in backup"
-    $CURRENT_DIR/inc/db-restore.sh $DB $DB_FILE
-  else
-    echo "$DB_FILE not found in $DB_DIR"
-  fi
+  echo "-- Restoring $DB"
+  yes | $CURRENT_DIR/restore-db.sh $TIME $USER $DB
 done
 
 echo "-- Vesta rebuild user"
