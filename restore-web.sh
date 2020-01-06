@@ -13,17 +13,13 @@ WEB=$3
 # Set script start time
 START_TIME=`date +%s`
 
-# Temp dir setup
-TEMP_DIR=$CURRENT_DIR/tmp
-mkdir -p $TEMP_DIR
-
 # Set user repository
 USER_REPO=$REPO_USERS_DIR/$USER
 
 ##### Validations #####
 
 if [[ -z $1 || -z $2 || -z $3 ]]; then
-  echo "!!!!! This script needs at least 3 arguments. Backup date, user name and web domain. Dadabase is optional"
+  echo "!!!!! This script needs at least 3 arguments. Backup date, user name and web domain. Database is optional"
   echo "---"
   echo "Usage example:"
   echo $USAGE
@@ -82,22 +78,14 @@ fi
 WEB_DIR=$HOME_DIR/$USER/web/$WEB/$PUBLIC_HTML_DIR_NAME
 BACKUP_WEB_DIR="${WEB_DIR:1}"
 
-echo "-- Restoring web domain files from backup $USER_REPO::$TIME to temp dir"
-cd $TEMP_DIR
-borg extract --list $USER_REPO::$TIME $BACKUP_WEB_DIR
-
-# Check that the files have been restored correctly
-if [ ! -d "$BACKUP_WEB_DIR" ]; then
+if ! borg list $USER_REPO::$TIME | grep -q $BACKUP_WEB_DIR; then
   echo "!!!!! $WEB is not present in backup archive $TIME. Aborting..."
   exit 1
 fi
-if [ -z "$(ls -A $BACKUP_WEB_DIR)" ]; then
-  echo "!!!!! $WEB restored directory is empty, Aborting..."
-  exit 1
-fi
-
-echo "-- Restoring files from temp dir to $WEB_DIR"
-rsync -za --delete $BACKUP_WEB_DIR/ $WEB_DIR/
+echo "-- Restoring web domain files from backup $USER_REPO::$TIME to $WEB_DIR"
+cd /
+rm -fr $BACKUP_WEB_DIR
+borg extract --list $USER_REPO::$TIME $BACKUP_WEB_DIR
 
 echo "-- Fixing permissions"
 chown -R $USER:$USER $WEB_DIR/
@@ -115,11 +103,6 @@ if [ $4 ]; then
       v-list-databases $USER | cut -d " " -f1 | awk '{if(NR>2)print}'
     fi
   done
-fi
-
-echo "----- Cleaning temp dir"
-if [ -d "$TEMP_DIR" ]; then
-  rm -rf $TEMP_DIR/*
 fi
 
 echo

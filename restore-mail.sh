@@ -13,10 +13,6 @@ DOMAIN=$3
 # Set script start time
 START_TIME=`date +%s`
 
-# Temp dir setup
-TEMP_DIR=$CURRENT_DIR/tmp
-mkdir -p $TEMP_DIR
-
 # Set user repository
 USER_REPO=$REPO_USERS_DIR/$USER
 
@@ -82,30 +78,17 @@ fi
 DOMAIN_DIR=$HOME_DIR/$USER/mail/$DOMAIN
 BACKUP_DOMAIN_DIR="${DOMAIN_DIR:1}" # Paths inside borg repo are relative
 
-echo "-- Restoring mail domain files from backup $USER_REPO::$TIME to temp dir"
-cd $TEMP_DIR
-borg extract --list $USER_REPO::$TIME $BACKUP_DOMAIN_DIR
-
-# Check that the files have been restored correctly
-if [ ! -d "$BACKUP_DOMAIN_DIR" ]; then
+if ! borg list $USER_REPO::$TIME | grep -q $BACKUP_DOMAIN_DIR; then
   echo "!!!!! $DOMAIN mail domain is not present in backup archive $TIME. Aborting..."
   exit 1
 fi
-if [ -z "$(ls -A $BACKUP_DOMAIN_DIR)" ]; then
-  echo "!!!!! $DOMAIN mail domain restored directory is empty, Aborting..."
-  exit 1
-fi
-
-echo "-- Restoring files from temp dir to $DOMAIN_DIR"
-rsync -za --delete $BACKUP_DOMAIN_DIR/ $DOMAIN_DIR/
+echo "-- Restoring mail domain files from backup $USER_REPO::$TIME to $BACKUP_DOMAIN_DIR"
+cd /
+rm -fr $BACKUP_DOMAIN_DIR
+borg extract --list $USER_REPO::$TIME $BACKUP_DOMAIN_DIR
 
 echo "-- Fixing permissions"
 chown -R $USER:mail $DOMAIN_DIR/
-
-echo "----- Cleaning temp dir"
-if [ -d "$TEMP_DIR" ]; then
-  rm -rf $TEMP_DIR/*
-fi
 
 echo
 echo "$(date +'%F %T') ########## MAIL DOMAIN $DOMAIN OWNED BY $USER RESTORE COMPLETED ##########"

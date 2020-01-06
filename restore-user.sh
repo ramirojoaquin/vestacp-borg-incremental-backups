@@ -12,10 +12,6 @@ USER=$2
 # Set script start time
 START_TIME=`date +%s`
 
-# Temp dir setup
-TEMP_DIR=$CURRENT_DIR/tmp
-mkdir -p $TEMP_DIR
-
 # Set user repository
 USER_REPO=$REPO_USERS_DIR/$USER
 
@@ -77,43 +73,26 @@ VESTA_USER_DIR=$VESTA_DIR/data/users/$USER
 BACKUP_USER_DIR="${USER_DIR:1}"
 BACKUP_VESTA_USER_DIR="${VESTA_USER_DIR:1}"
 
-cd $TEMP_DIR
+cd /
 
-echo "----- Restoring Vesta user files from backup $REPO_VESTA::$TIME to temp dir"
-borg extract --list $REPO_VESTA::$TIME $BACKUP_VESTA_USER_DIR
-
-# Check that the files have been restored correctly
-if [ ! -d "$BACKUP_VESTA_USER_DIR" ]; then
+if ! borg list $REPO_VESTA::$TIME | grep -q $BACKUP_VESTA_USER_DIR; then
   echo "!!!!! Vesta user config files for $USER are not present in backup archive $TIME. Aborting..."
   exit 1
 fi
-if [ -z "$(ls -A $BACKUP_VESTA_USER_DIR)" ]; then
-  echo "!!!!! Vesta user config files restored directory for $USER is empty, Aborting..."
-  exit 1
-fi
-
-echo "-- Restoring vesta config files for user $USER from temp dir to $VESTA_USER_DIR"
-mkdir -p $VESTA_USER_DIR
-rsync -za --delete $BACKUP_VESTA_USER_DIR/ $VESTA_USER_DIR/
+echo "----- Restoring Vesta user files from backup $REPO_VESTA::$TIME to $VESTA_USER_DIR"
+rm -fr $BACKUP_VESTA_USER_DIR
+borg extract --list $REPO_VESTA::$TIME $BACKUP_VESTA_USER_DIR
 
 echo "-- Vesta rebuild user"
 v-rebuild-user $USER
 
-echo "----- Restoring user files from backup $USER_REPO::$TIME to temp dir"
-borg extract --list $USER_REPO::$TIME $BACKUP_USER_DIR
-
-# Check that the files have been restored correctly
-if [ ! -d "$BACKUP_USER_DIR" ]; then
+if ! borg list $USER_REPO::$TIME | grep -q $BACKUP_USER_DIR; then
   echo "!!!!! User $USER files are not present in backup archive $TIME. Aborting..."
   exit 1
 fi
-if [ -z "$(ls -A $BACKUP_USER_DIR)" ]; then
-  echo "!!!!! User $USER restored directory is empty, Aborting..."
-  exit 1
-fi
-
-echo "-- Restoring user files from temp dir to $USER_DIR"
-rsync -za --delete --omit-dir-times $BACKUP_USER_DIR/ $USER_DIR/
+echo "----- Restoring user files from backup $USER_REPO::$TIME"
+rm -fr $BACKUP_USER_DIR
+borg extract --list $USER_REPO::$TIME $BACKUP_USER_DIR
 
 echo "-- Fixing web permissions"
 chown -R $USER:$USER $USER_DIR/web
@@ -126,11 +105,6 @@ done
 
 echo "-- Vesta rebuild user"
 v-rebuild-user $USER
-
-echo "----- Cleaning temp dir"
-if [ -d "$TEMP_DIR" ]; then
-  rm -rf $TEMP_DIR/*
-fi
 
 echo
 echo "$(date +'%F %T') #################### USER $USER RESTORE COMPLETED ####################"
