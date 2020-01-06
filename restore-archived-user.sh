@@ -109,7 +109,20 @@ v-list-databases $USER | grep \ mysql\  | cut -d " " -f1 | while read DB ; do
   if test -f "$DB_FILE"
     then
     echo "-- $DB found in offline archive"
-    $CURRENT_DIR/inc/db-restore.sh $DB $DB_FILE
+    $CURRENT_DIR/inc/mysql-restore.sh $DB $DB_FILE
+  else
+    echo "$DB_FILE not found offline archive in $DB_DIR"
+  fi
+done
+
+v-list-databases $USER | grep \ pgsql\  | cut -d " " -f1 | while read DB ; do
+  DB_DIR=$HOME_DIR/$USER/$DB_DUMP_DIR_NAME
+  DB_FILE=$DB_DIR/$DB.sql.gz
+  # Check if there is a backup for the db
+  if test -f "$DB_FILE"
+    then
+    echo "-- $DB found in offline archive"
+    $CURRENT_DIR/inc/pgsql-restore.sh $DB $DB_FILE
   else
     echo "$DB_FILE not found offline archive in $DB_DIR"
   fi
