@@ -79,7 +79,7 @@ while read DATABASE ; do
   echo "$(date +'%F %T') -- $DATABASE > $DESTINATION/$DATABASE.sql.gz"
   # Fix permissions
   chown -R $USER:$USER $DESTINATION
-done < <(v-list-databases $USER | cut -d " " -f1 | awk '{if(NR>2)print}')
+done < <(v-list-databases $USER | grep \ mysql\  | cut -d " " -f1)
 
 echo "-- Creating user archive directory $ARCHIVE_USER_DIR"
 # First remove archive dir and file if exist

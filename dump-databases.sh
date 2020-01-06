@@ -25,7 +25,7 @@ while read USER ; do
     mysqldump $DATABASE --opt --routines --skip-comments | borg create $OPTIONS_CREATE $USER_REPO::$ARCHIVE -
     borg prune $OPTIONS_PRUNE $USER_REPO --prefix ${DATABASE}'-'
     let DB_COUNT++
-  done < <(v-list-databases $USER | cut -d " " -f1 | awk '{if(NR>2)print}')
+  done < <(v-list-databases $USER | grep \ mysql\  | cut -d " " -f1)
   echo "-- Cleaning old backup archives"
 done < <(v-list-users | cut -d " " -f1 | awk '{if(NR>2)print}')
 

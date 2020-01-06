@@ -94,13 +94,13 @@ chown -R $USER:$USER $WEB_DIR/
 
 if [ $4 ]; then
   DB=$4
-  v-list-databases $USER | cut -d " " -f1 | awk '{if(NR>2)print}' | while read DATABASE ; do
+  v-list-databases $USER | grep \ mysql\  | cut -d " " -f1 | while read DATABASE ; do
     if [ "$DB" == "$DATABASE" ]; then
       echo "-- Restoring database $DB from backup $TIME"
       yes | $CURRENT_DIR/restore-db.sh $TIME $USER $DB
     else
       echo "!!!!! Database $DB not found under selected user. User $USER has the following databases:"
-      v-list-databases $USER | cut -d " " -f1 | awk '{if(NR>2)print}'
+      v-list-databases $USER | grep \ mysql\  | cut -d " " -f1
     fi
   done
 fi

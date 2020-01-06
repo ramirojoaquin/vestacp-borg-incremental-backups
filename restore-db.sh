@@ -23,7 +23,7 @@ USER_REPO=$REPO_DB_DIR/$USER
 ##### Validations #####
 
 if [[ -z $1 || -z $2 || -z $3 ]]; then
-  echo "!!!!! This script needs at least 3 arguments. Backup date, user name and dadabase"
+  echo "!!!!! This script needs at least 3 arguments. Backup date, user name and database"
   echo "---"
   echo "Usage example:"
   echo $USAGE
@@ -41,11 +41,11 @@ if [ ! -d "$HOME_DIR/$USER" ]; then
   exit 1
 fi
 
-if [[ $(v-list-databases $USER | cut -d " " -f1 | awk '{if(NR>2)print}' | grep "$DB") != "$DB" ]]; then
+if [[ $(v-list-databases $USER | grep \ mysql\  | cut -d " " -f1 | grep "$DB") != "$DB" ]]; then
   echo "!!!!! Database $DB not found under selected user."
   echo "---"
   echo "User $USER has the following databases:"
-  v-list-databases $USER | cut -d " " -f1 | awk '{if(NR>2)print}'
+  v-list-databases $USER | grep \ mysql\  | cut -d " " -f1
   echo "---"
   echo "Usage example:"
   echo $USAGE
