@@ -23,10 +23,10 @@ while read USER ; do
     ARCHIVE="$DATABASE-$TIME"
     echo "-- Creating new backup archive $USER_REPO::$ARCHIVE"
     mysqldump $DATABASE --opt --routines --skip-comments | borg create $OPTIONS_CREATE $USER_REPO::$ARCHIVE -
+    borg prune $OPTIONS_PRUNE $USER_REPO --prefix ${DATABASE}'-'
     let DB_COUNT++
   done < <(v-list-databases $USER | cut -d " " -f1 | awk '{if(NR>2)print}')
   echo "-- Cleaning old backup archives"
-  borg prune $OPTIONS_PRUNE $USER_REPO
 done < <(v-list-users | cut -d " " -f1 | awk '{if(NR>2)print}')
 
 echo "$(date +'%F %T') ########## $DB_COUNT DATABASES SAVED ##########"
