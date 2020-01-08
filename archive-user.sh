@@ -87,7 +87,7 @@ while read DATABASE ; do
   mkdir -p $DESTINATION
   # Clean destination
   rm -f $DESTINATION/*
-  pqdump -U postgres $DATABASE | gzip > $DESTINATION/$DATABASE.sql.gz
+  pg_dump -U postgres $DATABASE | gzip > $DESTINATION/$DATABASE.sql.gz
   echo "$(date +'%F %T') -- $DATABASE > $DESTINATION/$DATABASE.sql.gz"
   # Fix permissions
   chown -R $USER:$USER $DESTINATION
