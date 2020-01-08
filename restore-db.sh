@@ -41,11 +41,11 @@ if [ ! -d "$HOME_DIR/$USER" ]; then
   exit 1
 fi
 
-if [[ $(v-list-databases $USER | grep \ mysql\  | cut -d " " -f1 | grep "$DB") != "$DB" ]]; then
+if [[ $(v-list-databases $USER | grep -w '\(my\|pg\)sql' | cut -d " " -f1 | grep "$DB") != "$DB" ]]; then
   echo "!!!!! Database $DB not found under selected user."
   echo "---"
   echo "User $USER has the following databases:"
-  v-list-databases $USER | grep \ mysql\  | cut -d " " -f1
+  v-list-databases $USER | grep -w '\(my\|pg\)sql' | cut -d " " -f1
   echo "---"
   echo "Usage example:"
   echo $USAGE
@@ -79,14 +79,27 @@ then
 fi
 
 echo "-- Restoring database $DB from backup $USER_REPO::$TIME"
-echo "-- Removing database $DB"
-mysqladmin -f drop $DB
 
-echo "-- Creating database $DB"
-mysql -e "CREATE DATABASE IF NOT EXISTS $DB"
+if [[ $(v-list-databases $USER | grep -w mysql | cut -d " " -f1 | grep "$DB") == "$DB" ]]; then
+  echo "-- Removing database $DB"
+  mysqladmin -f drop $DB
 
-echo "-- Importing $DB_FILE to $DB database"
-borg extract --stdout $USER_REPO::$DB-$TIME | mysql $DB
+  echo "-- Creating database $DB"
+  mysql -e "CREATE DATABASE IF NOT EXISTS $DB"
+
+  echo "-- Importing $DB_FILE to $DB database"
+  borg extract --stdout $USER_REPO::$DB-$TIME | mysql $DB
+fi
+if [[ $(v-list-databases $USER | grep -w pgsql | cut -d " " -f1 | grep "$DB") == "$DB" ]]; then
+  echo "-- Removing database $DB"
+  echo "DROP DATABASE $DB" | psql -U postgres
+
+  echo "-- Creating database $DB"
+  echo "CREATE DATABASE $DB" | psql -U postgres
+
+  echo "-- Importing $DB_FILE to $DB database"
+  borg extract --stdout $USER_REPO::$DB-$TIME | psql -U postgres $DB
+fi
 
 echo
 echo "$(date +'%F %T') ########## DATABASE $DB OWNED BY $USER RESTORE COMPLETED ##########"
