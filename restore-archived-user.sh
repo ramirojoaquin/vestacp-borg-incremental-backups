@@ -4,8 +4,8 @@ source $CURRENT_DIR/config.ini
 
 # This script will restore the given user from the offline archive.
 # If the user does not exist in the system, it will be created.
-# If the user already exist, it will be overwrited.
-USAGE="restore-user.sh user"
+# If the user already exist, it will be overwritten.
+USAGE="restore-archived-user.sh user"
 
 # Assign arguments
 USER=$1
@@ -102,14 +102,27 @@ echo "-- Fixing web permissions"
 chown -R $USER:$USER $USER_DIR/web
 
 echo "----- Checking if there are databases to restore"
-v-list-databases $USER | cut -d " " -f1 | awk '{if(NR>2)print}' | while read DB ; do
+v-list-databases $USER | grep -w mysql | cut -d " " -f1 | while read DB ; do
   DB_DIR=$HOME_DIR/$USER/$DB_DUMP_DIR_NAME
   DB_FILE=$DB_DIR/$DB.sql.gz
   # Check if there is a backup for the db
   if test -f "$DB_FILE"
     then
     echo "-- $DB found in offline archive"
-    $CURRENT_DIR/inc/db-restore.sh $DB $DB_FILE
+    $CURRENT_DIR/inc/mysql-restore.sh $DB $DB_FILE
+  else
+    echo "$DB_FILE not found offline archive in $DB_DIR"
+  fi
+done
+
+v-list-databases $USER | grep -w pgsql | cut -d " " -f1 | while read DB ; do
+  DB_DIR=$HOME_DIR/$USER/$DB_DUMP_DIR_NAME
+  DB_FILE=$DB_DIR/$DB.sql.gz
+  # Check if there is a backup for the db
+  if test -f "$DB_FILE"
+    then
+    echo "-- $DB found in offline archive"
+    $CURRENT_DIR/inc/pgsql-restore.sh $DB $DB_FILE
   else
     echo "$DB_FILE not found offline archive in $DB_DIR"
   fi

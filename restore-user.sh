@@ -98,7 +98,11 @@ echo "-- Fixing web permissions"
 chown -R $USER:$USER $USER_DIR/web
 
 echo "----- Checking if there are databases to restore"
-v-list-databases $USER | cut -d " " -f1 | awk '{if(NR>2)print}' | while read DB ; do
+v-list-databases $USER | grep -w mysql | cut -d " " -f1 | while read DB ; do
+  echo "-- Restoring $DB"
+  yes | $CURRENT_DIR/restore-db.sh $TIME $USER $DB
+done
+v-list-databases $USER | grep -w pgsql | cut -d " " -f1 | while read DB ; do
   echo "-- Restoring $DB"
   yes | $CURRENT_DIR/restore-db.sh $TIME $USER $DB
 done

@@ -69,17 +69,24 @@ fi
 echo "########## USER $USER FOUND, PROCEEDING WITH ARCHIVE ##########"
 
 echo "-- Dumping databases to user dir"
+# Create dir where the user databases will be stored
+DESTINATION=$HOME_DIR/$USER/$DB_DUMP_DIR_NAME
+mkdir -p $DESTINATION
+# Clean destination
+rm -f $DESTINATION/*
 while read DATABASE ; do
-  # Create dir where the user databases will be stored
-  DESTINATION=$HOME_DIR/$USER/$DB_DUMP_DIR_NAME
-  mkdir -p $DESTINATION
-  # Clean destination
-  rm -f $DESTINATION/*
   mysqldump $DATABASE --opt --routines | gzip > $DESTINATION/$DATABASE.sql.gz
   echo "$(date +'%F %T') -- $DATABASE > $DESTINATION/$DATABASE.sql.gz"
   # Fix permissions
   chown -R $USER:$USER $DESTINATION
-done < <(v-list-databases $USER | cut -d " " -f1 | awk '{if(NR>2)print}')
+done < <(v-list-databases $USER | grep -w mysql | cut -d " " -f1)
+
+while read DATABASE ; do
+  pg_dump -U postgres $DATABASE | gzip > $DESTINATION/$DATABASE.sql.gz
+  echo "$(date +'%F %T') -- $DATABASE > $DESTINATION/$DATABASE.sql.gz"
+  # Fix permissions
+  chown -R $USER:$USER $DESTINATION
+done < <(v-list-databases $USER | grep -w pgsql | cut -d " " -f1)
 
 echo "-- Creating user archive directory $ARCHIVE_USER_DIR"
 # First remove archive dir and file if exist

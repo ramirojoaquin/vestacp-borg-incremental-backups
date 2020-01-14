@@ -94,15 +94,25 @@ chown -R $USER:$USER $WEB_DIR/
 
 if [ $4 ]; then
   DB=$4
-  v-list-databases $USER | cut -d " " -f1 | awk '{if(NR>2)print}' | while read DATABASE ; do
-    if [ "$DB" == "$DATABASE" ]; then
-      echo "-- Restoring database $DB from backup $TIME"
-      yes | $CURRENT_DIR/restore-db.sh $TIME $USER $DB
-    else
-      echo "!!!!! Database $DB not found under selected user. User $USER has the following databases:"
-      v-list-databases $USER | cut -d " " -f1 | awk '{if(NR>2)print}'
-    fi
-  done
+  if [[ $(v-list-databases $USER | grep -w '\(my\|pg\)sql' | cut -d " " -f1 | grep "$DB") != "$DB" ]]; then
+    echo "!!!!! Database $DB not found under selected user."
+    echo "---"
+    echo "User $USER has the following databases:"
+    v-list-databases $USER | grep -w '\(my\|pg\)sql' | cut -d " " -f1
+  else
+    v-list-databases $USER | grep -w mysql | cut -d " " -f1 | while read DATABASE ; do
+      if [ "$DB" == "$DATABASE" ]; then
+        echo "-- Restoring database $DB from backup $TIME"
+        yes | $CURRENT_DIR/restore-db.sh $TIME $USER $DB
+      fi
+    done
+    v-list-databases $USER | grep -w pgsql | cut -d " " -f1 | while read DATABASE ; do
+      if [ "$DB" == "$DATABASE" ]; then
+        echo "-- Restoring database $DB from backup $TIME"
+        yes | $CURRENT_DIR/restore-db.sh $TIME $USER $DB
+      fi
+    done
+  fi
 fi
 
 echo
