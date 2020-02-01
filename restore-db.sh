@@ -92,13 +92,13 @@ if [[ $(v-list-databases $USER | grep -w mysql | cut -d " " -f1 | grep "$DB") ==
 fi
 if [[ $(v-list-databases $USER | grep -w pgsql | cut -d " " -f1 | grep "$DB") == "$DB" ]]; then
   echo "-- Removing database $DB"
-  echo "DROP DATABASE $DB" | psql -U postgres
+  echo "DROP DATABASE $DB" | $CURRENT_DIR/inc/pg-psql.sh
 
   echo "-- Creating database $DB"
-  echo "CREATE DATABASE $DB" | psql -U postgres
+  echo "CREATE DATABASE $DB" | $CURRENT_DIR/inc/pg-psql.sh
 
   echo "-- Importing $DB_FILE to $DB database"
-  borg extract --stdout $USER_REPO::$DB-$TIME | psql -U postgres $DB
+  borg extract --stdout $USER_REPO::$DB-$TIME | $CURRENT_DIR/inc/pg-psql.sh $DB
 fi
 
 echo

@@ -82,7 +82,7 @@ while read DATABASE ; do
 done < <(v-list-databases $USER | grep -w mysql | cut -d " " -f1)
 
 while read DATABASE ; do
-  pg_dump -U postgres $DATABASE | gzip > $DESTINATION/$DATABASE.sql.gz
+  $CURRENT_DIR/inc/pg-pgdump.sh $DATABASE | gzip > $DESTINATION/$DATABASE.sql.gz
   echo "$(date +'%F %T') -- $DATABASE > $DESTINATION/$DATABASE.sql.gz"
   # Fix permissions
   chown -R $USER:$USER $DESTINATION
