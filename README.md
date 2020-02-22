@@ -81,11 +81,11 @@ The name of the backup point/archive is set in the following format:
 Vesta CLI commands are used to obtain all the information.
 
 ### Dump databases
-`./dump-databases.sh`
+`./dump-databases.sh 2018-03-25`
 
 Dump all databases and adds them to the user's db borg repository. It does this using pipes so that it does not use any temporary disk space.
 
-This script is called by main `backup-execute.sh` but it can also be run independently.
+This script is called by main `backup-execute.sh` but it can also be run independently, by adding today's date in YYYY-MM-DD format as the first parameter.
 
 ## Backup restore usage
 
