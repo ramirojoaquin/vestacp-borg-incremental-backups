@@ -7,6 +7,9 @@ source $CURRENT_DIR/config.ini
 # Assign arguments
 TIME=$1
 DB_COUNT=0
+if [ -z $TIME ]; then
+  TIME=$(date +'%F')
+fi
 
 echo "$(date +'%F %T') #################### DUMP MYSQL DATABASES TO CORRESPONDING USER BORG REPO ####################"
 # Get user list
