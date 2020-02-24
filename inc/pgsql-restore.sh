@@ -14,9 +14,11 @@ fi
 DB=$1
 DB_FILE=$2
 
+CURRENT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
+
 echo "-- Importing $DB_FILE to $DB database"
 if [[ $DB_FILE = *".gz"* ]]; then
-  gunzip < $DB_FILE | psql -U postgres $DB
+  gunzip < $DB_FILE | $CURRENT_DIR/pg-psql.sh $DB
 else
-  psql -U postgres $DB < $DB_FILE
+  $CURRENT_DIR/pg-psql.sh $DB < $DB_FILE
 fi

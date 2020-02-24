@@ -7,6 +7,9 @@ source $CURRENT_DIR/config.ini
 # Assign arguments
 TIME=$1
 DB_COUNT=0
+if [ -z $TIME ]; then
+  TIME=$(date +'%F')
+fi
 
 echo "$(date +'%F %T') #################### DUMP MYSQL DATABASES TO CORRESPONDING USER BORG REPO ####################"
 # Get user list
@@ -30,7 +33,7 @@ while read USER ; do
   while read DATABASE ; do
     ARCHIVE="$DATABASE-$TIME"
     echo "-- Creating new backup archive $USER_REPO::$ARCHIVE"
-    pg_dump -U postgres $DATABASE | borg create $OPTIONS_CREATE $USER_REPO::$ARCHIVE -
+    $CURRENT_DIR/inc/pg-pgdump.sh $DATABASE | borg create $OPTIONS_CREATE $USER_REPO::$ARCHIVE -
     borg prune $OPTIONS_PRUNE $USER_REPO --prefix ${DATABASE}'-'
     let DB_COUNT++
   done < <(v-list-databases $USER | grep -w pgsql | cut -d " " -f1)
